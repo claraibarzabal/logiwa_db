@@ -19,7 +19,6 @@ df_status['id'] = df_status.index + 1
 df_receipts['id'] = df_receipts.index + 1
 df_item['id'] = df_item.index + 1
 
-
 df_receipts = df_receipts.merge(
     df_client[['Description', 'id']],
     left_on='Client',      # receipts column
@@ -142,12 +141,6 @@ LIMIT 5;
 
 result = pd.read_sql_query(query_status, conn)
 print(result)
-
-print('Client', df_client.columns)
-print('Status', df_status.columns)
-print('Item', df_item.columns)  
-print('CompareReceipt', df_compare_receipt.columns)
-print('ReceiptOrder', df_receipts.columns)
 
 query_status2 = """
 SELECT 
