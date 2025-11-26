@@ -14,10 +14,20 @@ df_users = pd.read_excel(os.path.join(EXCEL_DIR, "User1.xlsx"))
 df_client = pd.read_excel(os.path.join(EXCEL_DIR, "Client1.xlsx"))
 df_item = pd.read_excel(os.path.join(EXCEL_DIR, "Items.xlsx"))
 
+files = [
+    "Excels/ReceiptReport1.xlsx",
+    "Excels/ReceiptReport2.xlsx",
+    "Excels/ReceiptReport3.xlsx"
+]
+
+# Leer y concatenar
+df_receipt_report = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
+
 df_client['id'] = df_client.index + 1
 df_status['id'] = df_status.index + 1
 df_receipts['id'] = df_receipts.index + 1
 df_item['id'] = df_item.index + 1
+df_receipt_report['id'] = df_receipt_report.index + 1
 
 df_receipts = df_receipts.merge(
     df_client[['Description', 'id']],
@@ -109,6 +119,64 @@ df_compare_receipt = df_compare_receipt.rename(columns={
 
 df_compare_receipt['id'] = df_compare_receipt.index + 1
 
+print(df_receipt_report)
+
+cols = [
+    "Client",
+    "Status",
+    "Date Received",
+    "PO / Receipt Order #",
+    "SKU",
+    "Pallet/Tote (LP)",
+    "Location",
+    "Return",
+    "Quantity (Unit)",
+    "Entered By"
+]
+
+df_receipt_report = df_receipt_report[cols]
+
+df_receipt_report = df_receipt_report.rename(columns={
+    "Client": "client",
+    "Status": "status",
+    "Date Received": "date_received",
+    "PO / Receipt Order #": "po_receipt_order",
+    "SKU": "sku",
+    "Pallet/Tote (LP)": "pallet_tote_lp",
+    "Location": "location",
+    "Return": "return",
+    "Quantity (Unit)": "quantity_unit",
+    "Entered By": "entered_by"
+})
+
+df_receipt_report = df_receipt_report.merge(
+    df_client[['Description', 'id']],
+    left_on='client',      # compare receipts column
+    right_on='Description',  # client column
+    how='left'
+).rename(columns={'id': 'client_id'})
+
+df_receipt_report = df_receipt_report.merge(
+    df_status[['status_name', 'id']],
+    left_on='status',      # compare receipts column
+    right_on='status_name',  # status column
+    how='left'
+).rename(columns={'id': 'status_id'})
+
+df_receipt_report = df_receipt_report.merge(
+    df_receipts[['receipt_order', 'id']],
+    left_on='po_receipt_order',      # compare receipts column
+    right_on='receipt_order',  # receipt column
+    how='left'
+).rename(columns={'id': 'receipt_id'})
+
+df_receipt_report = df_receipt_report.merge(
+    df_item[['SKU', 'id']],
+    left_on='sku',      # compare receipts column
+    right_on='SKU',  # item column
+    how='left'
+).rename(columns={'id': 'item_id'})
+
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
 
@@ -120,6 +188,7 @@ df_type.to_sql("Type", conn, if_exists="replace", index=False)
 df_client.to_sql("Client", conn, if_exists="replace", index=False)
 df_item.to_sql("Item", conn, if_exists="replace", index=False)
 df_compare_receipt.to_sql("CompareReceipt", conn, if_exists="replace", index=False)
+df_receipt_report.to_sql("Receipt Report", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
 query_status = """
@@ -206,44 +275,7 @@ print(result2)
 # print(df_type)
 # print(df_client)
 
-# Receipt Report
 
-# Lista de archivos
-files = [
-    "Excels/ReceiptReport1.xlsx",
-    "Excels/ReceiptReport2.xlsx",
-    "Excels/ReceiptReport3.xlsx"
-]
 
-# Leer y concatenar
-df_receipt_report = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
 
-print(df_receipt_report)
 
-cols = [
-    "Client",
-    "Status",
-    "Date Received",
-    "PO / Receipt Order #",
-    "SKU",
-    "Pallet/Tote (LP)",
-    "Location",
-    "Return",
-    "Quantity (Unit)",
-    "Entered By"
-]
-
-df_receipt_report = df_receipt_report[cols]
-
-df_receipt_report = df_receipt_report.rename(columns={
-    "Client": "client",
-    "Status": "status",
-    "Date Received": "date_received",
-    "PO / Receipt Order #": "po_receipt_order",
-    "SKU": "sku",
-    "Pallet/Tote (LP)": "pallet_tote_lp",
-    "Location": "location",
-    "Return": "return_flag",
-    "Quantity (Unit)": "quantity_unit",
-    "Entered By": "entered_by"
-})
