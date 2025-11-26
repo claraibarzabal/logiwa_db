@@ -177,6 +177,13 @@ df_receipt_report = df_receipt_report.merge(
     how='left'
 ).rename(columns={'id': 'item_id'})
 
+df_receipt_report = df_receipt_report.merge(
+    df_users[['Email', 'id']],
+    left_on='entered_by',      # receipts column
+    right_on='Email',  # users column
+    how='left'
+).rename(columns={'id': 'user_id'})
+
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
 
