@@ -7,6 +7,7 @@ EXCEL_DIR = os.path.join(BASE_DIR, "Excels_Old")
 
 # 1. Cargás los excels
 df_receipts = pd.read_excel(os.path.join(EXCEL_DIR, "ReceiptOrder1.xlsx"))
+df_compare_receipt = pd.read_excel(os.path.join(EXCEL_DIR, "CompareReceipt1.xlsx"))
 df_status = pd.read_excel(os.path.join(EXCEL_DIR, "Status.xlsx"))
 df_type = pd.read_excel(os.path.join(EXCEL_DIR, "Type.xlsx"))
 df_users = pd.read_excel(os.path.join(EXCEL_DIR, "User1.xlsx"))
