@@ -206,3 +206,44 @@ print(result2)
 # print(df_type)
 # print(df_client)
 
+# Receipt Report
+
+# Lista de archivos
+files = [
+    "Excels/ReceiptReport1.xlsx",
+    "Excels/ReceiptReport2.xlsx",
+    "Excels/ReceiptReport3.xlsx"
+]
+
+# Leer y concatenar
+df = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
+
+print(df)
+
+cols = [
+    "Client",
+    "Status",
+    "Date Received",
+    "PO / Receipt Order #",
+    "SKU",
+    "Pallet/Tote (LP)",
+    "Location",
+    "Return",
+    "Quantity (Unit)",
+    "Entered By"
+]
+
+df = df[cols]
+
+df = df.rename(columns={
+    "Client": "client",
+    "Status": "status",
+    "Date Received": "date_received",
+    "PO / Receipt Order #": "po_receipt_order",
+    "SKU": "sku",
+    "Pallet/Tote (LP)": "pallet_tote_lp",
+    "Location": "location",
+    "Return": "return_flag",
+    "Quantity (Unit)": "quantity_unit",
+    "Entered By": "entered_by"
+})
