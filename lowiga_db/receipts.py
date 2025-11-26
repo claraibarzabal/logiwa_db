@@ -12,10 +12,12 @@ df_status = pd.read_excel(os.path.join(EXCEL_DIR, "Status.xlsx"))
 df_type = pd.read_excel(os.path.join(EXCEL_DIR, "Type.xlsx"))
 df_users = pd.read_excel(os.path.join(EXCEL_DIR, "User1.xlsx"))
 df_client = pd.read_excel(os.path.join(EXCEL_DIR, "Client1.xlsx"))
+df_item = pd.read_excel(os.path.join(EXCEL_DIR, "Items.xlsx"))
 
 df_client['id'] = df_client.index + 1
 df_status['id'] = df_status.index + 1
 df_receipts['id'] = df_receipts.index + 1
+df_item['id'] = df_item.index + 1
 
 
 df_receipts = df_receipts.merge(
@@ -26,9 +28,9 @@ df_receipts = df_receipts.merge(
 ).rename(columns={'id_y': 'client_id'})
 
 df_receipts = df_receipts.merge(
-    df_status[['description', 'id']],
+    df_status[['status_name', 'id']],
     left_on='RO Status',      # receipts column
-    right_on='description',  # status column
+    right_on='status_name',  # status column
     how='left'
 ).rename(columns={'id': 'status_id'})
 
@@ -58,13 +60,55 @@ df_receipts = df_receipts.rename(columns={
     'id_x': 'id'
 })
 
+df_compare_receipt = df_compare_receipt.merge(
+    df_client[['Description', 'id']],
+    left_on='Client',      # compare receipts column
+    right_on='Description',  # client column
+    how='left'
+).rename(columns={'id': 'client_id'})
 
-# print("Status df", df_status.head())
-# print("Users df", df_users.head())
-# print("Type df", df_type.head())
-# print("Client df", df_client.head())
-# print(df_receipts.head())
+df_compare_receipt = df_compare_receipt.merge(
+    df_receipts[['receipt_order', 'id']],
+    left_on='Receipt Order',      # compare receipts column
+    right_on='receipt_order',  # receipt column
+    how='left'
+).rename(columns={'id': 'receipt_id'})
 
+df_compare_receipt = df_compare_receipt.dropna(subset=['receipt_id'])
+df_compare_receipt['receipt_id'] = df_compare_receipt['receipt_id'].astype('Int64')
+
+df_compare_receipt = df_compare_receipt.merge(
+    df_item[['SKU', 'id']],
+    left_on='Item Code',      # compare receipts column
+    right_on='SKU',  # item column
+    how='left'
+).rename(columns={'id': 'item_id'})
+
+df_compare_receipt = df_compare_receipt.dropna(subset=['item_id'])
+df_compare_receipt['item_id'] = df_compare_receipt['item_id'].astype('Int64')
+
+df_compare_receipt = df_compare_receipt.merge(
+    df_status[['status_name', 'id']],
+    left_on='Status',      # compare receipts column
+    right_on='status_name',  # status column
+    how='left'
+).rename(columns={'id': 'status_id'})
+
+df_compare_receipt['Receipt Quantity'] = df_compare_receipt['Receipt Quantity'].astype('Int64')
+df_compare_receipt['Receipt Difference'] = df_compare_receipt['Receipt Difference'].astype('Int64')
+
+df_compare_receipt = df_compare_receipt[
+    ['receipt_id', 'client_id', 'status_id', 'item_id', 'Receipt Quantity', 'Receipt Difference', 'Receipt Order Quantity', 'Difference']
+]
+
+df_compare_receipt = df_compare_receipt.rename(columns={
+    'Receipt Quantity': 'receipt_quantity',
+    'Receipt Difference': 'receipt_difference',
+    'Receipt Order Quantity': 'receipt_order_quantity', 
+    'Difference': 'difference'
+})
+
+df_compare_receipt['id'] = df_compare_receipt.index + 1
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
@@ -75,9 +119,8 @@ df_status.to_sql("Status", conn, if_exists="replace", index=False)
 df_users.to_sql("User", conn, if_exists="replace", index=False)
 df_type.to_sql("Type", conn, if_exists="replace", index=False)
 df_client.to_sql("Client", conn, if_exists="replace", index=False)
-
-
-
+df_item.to_sql("Item", conn, if_exists="replace", index=False)
+df_compare_receipt.to_sql("CompareReceipt", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
 query_status = """
@@ -86,7 +129,7 @@ SELECT
     r.receipt_order,
     r.date_completed,
     c.Description AS client_name,
-    s.description AS status_name,
+    s.status_name,
     t.description AS type_name,
     u.description AS entered_by
 FROM ReceiptOrder r
@@ -99,6 +142,31 @@ LIMIT 5;
 
 result = pd.read_sql_query(query_status, conn)
 print(result)
+
+print('Client', df_client.columns)
+print('Status', df_status.columns)
+print('Item', df_item.columns)  
+print('CompareReceipt', df_compare_receipt.columns)
+print('ReceiptOrder', df_receipts.columns)
+
+query_status2 = """
+SELECT 
+    rc.id,
+    r.receipt_order,
+    r.date_completed,
+    c.Description AS client_name,
+    s.status_name,
+    i.SKU AS item_sku
+FROM CompareReceipt rc
+LEFT JOIN Client c ON rc.client_id = c.id
+LEFT JOIN Status s ON rc.status_id = s.id
+LEFT JOIN Item i ON rc.item_id = i.id
+LEFT JOIN ReceiptOrder r ON rc.receipt_id = r.id
+LIMIT 5;
+"""
+
+result2 = pd.read_sql_query(query_status2, conn)
+print(result2)
 
 
 # # QUERY: usuarios
