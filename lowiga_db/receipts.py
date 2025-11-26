@@ -216,9 +216,9 @@ files = [
 ]
 
 # Leer y concatenar
-df = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
+df_receipt_report = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
 
-print(df)
+print(df_receipt_report)
 
 cols = [
     "Client",
@@ -233,9 +233,9 @@ cols = [
     "Entered By"
 ]
 
-df = df[cols]
+df_receipt_report = df_receipt_report[cols]
 
-df = df.rename(columns={
+df_receipt_report = df_receipt_report.rename(columns={
     "Client": "client",
     "Status": "status",
     "Date Received": "date_received",
