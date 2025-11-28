@@ -202,7 +202,7 @@ df_type.to_sql("Type", conn, if_exists="replace", index=False)
 df_client.to_sql("Client", conn, if_exists="replace", index=False)
 df_item.to_sql("Item", conn, if_exists="replace", index=False)
 df_compare_receipt.to_sql("CompareReceipt", conn, if_exists="replace", index=False)
-df_receipt_report.to_sql("Receipt Report", conn, if_exists="replace", index=False)
+df_receipt_report.to_sql("ReceiptReport", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
 query_status = """
