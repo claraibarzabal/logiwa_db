@@ -70,13 +70,6 @@ df_receipts = df_receipts.rename(columns={
 })
 
 df_compare_receipt = df_compare_receipt.merge(
-    df_client[['Description', 'id']],
-    left_on='Client',      # compare receipts column
-    right_on='Description',  # client column
-    how='left'
-).rename(columns={'id': 'client_id'})
-
-df_compare_receipt = df_compare_receipt.merge(
     df_receipts[['receipt_order', 'id']],
     left_on='Receipt Order',      # compare receipts column
     right_on='receipt_order',  # receipt column
@@ -95,13 +88,6 @@ df_compare_receipt = df_compare_receipt.merge(
 
 df_compare_receipt = df_compare_receipt.dropna(subset=['item_id'])
 df_compare_receipt['item_id'] = df_compare_receipt['item_id'].astype('Int64')
-
-df_compare_receipt = df_compare_receipt.merge(
-    df_status[['status_name', 'id']],
-    left_on='Status',      # compare receipts column
-    right_on='status_name',  # status column
-    how='left'
-).rename(columns={'id': 'status_id'})
 
 df_compare_receipt['Receipt Quantity'] = df_compare_receipt['Receipt Quantity'].astype('Int64')
 df_compare_receipt['Receipt Difference'] = df_compare_receipt['Receipt Difference'].astype('Int64')
@@ -149,19 +135,6 @@ df_receipt_report = df_receipt_report.rename(columns={
     "Entered By": "entered_by"
 })
 
-df_receipt_report = df_receipt_report.merge(
-    df_client[['Description', 'id']],
-    left_on='client',      # compare receipts column
-    right_on='Description',  # client column
-    how='left'
-).rename(columns={'id': 'client_id'})
-
-df_receipt_report = df_receipt_report.merge(
-    df_status[['status_name', 'id']],
-    left_on='status',      # compare receipts column
-    right_on='status_name',  # status column
-    how='left'
-).rename(columns={'id': 'status_id'})
 
 df_receipt_report = df_receipt_report.merge(
     df_receipts[['receipt_order', 'id']],
@@ -176,13 +149,6 @@ df_receipt_report = df_receipt_report.merge(
     right_on='SKU',  # item column
     how='left'
 ).rename(columns={'id': 'item_id'})
-
-df_receipt_report = df_receipt_report.merge(
-    df_users[['Email', 'id']],
-    left_on='entered_by',      # receipts column
-    right_on='Email',  # users column
-    how='left'
-).rename(columns={'id': 'user_id'})
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
