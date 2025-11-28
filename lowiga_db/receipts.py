@@ -29,6 +29,35 @@ df_receipts['id'] = df_receipts.index + 1
 df_item['id'] = df_item.index + 1
 df_receipt_report['id'] = df_receipt_report.index + 1
 
+df_users = df_users.rename(columns={
+    "username": "username",
+    "description": "description",
+    "Email": "email",
+    "Active": "active",
+    "Client_User": "client_user",
+    "API_User": "api_user",
+    "id": "id"
+})
+
+df_client = df_client.rename(columns={
+    "Code": "code",
+    "Description": "description",
+    "Tax Code": "tax_code",
+    "Tax Office": "tax_office",
+    "Packing Type Selection Algorithm": "packing_type_selection_algorithm",
+    "Issue Single Order For Packing": "issue_single_order_for_packing",
+    "Company": "company"
+})
+
+df_item = df_item.rename(columns={
+    "CLIENT": "client",
+    "SKU": "sku",
+    "DESCRIPTION": "description",
+    "BARCODE": "barcode",
+    "SALESUNITPRICE": "sales_unit_price",
+    "ITEMMASTERWEIGHT": "item_master_weight"
+})
+
 df_receipts = df_receipts.merge(
     df_client[['Description', 'id']],
     left_on='Client',      # receipts column
