@@ -30,6 +30,11 @@ shipment_files = [
 
 shipment_report_all = pd.concat( [pd.read_excel(f) for f in shipment_files], ignore_index=True)
 
+order_files = [
+    os.path.join(EXCEL_DIR, "ShipmentOrderDetailStatusReport1.xlsx"),
+    os.path.join(EXCEL_DIR, "ShipmentOrderDetailStatusReport2.xlsx")
+]
+df_order_details = pd.concat( [pd.read_excel(f) for f in order_files], ignore_index=True)
 
 df_client['id'] = df_client.index + 1
 df_status['id'] = df_status.index + 1
@@ -38,6 +43,7 @@ df_item['id'] = df_item.index + 1
 df_receipt_report['id'] = df_receipt_report.index + 1
 df_compare_receipt['id'] = df_compare_receipt.index + 1
 df_shipment_order['id'] = df_shipment_order.index + 1
+df_order_details['id'] = df_order_details.index + 1
 
 df_receipts = df_receipts.rename(columns={
     "Client": "client",
@@ -186,6 +192,16 @@ rename_cols = {
 
 shipment_report_all = shipment_report_all.rename(columns=rename_cols)
 
+df_order_details = df_order_details.rename(columns={
+    "Ordered Qty (Unit)": "ordered_qty",
+    "Open Qty (Unit)": "open_qty",
+    "Allocated Qty (Unit)": "allocated_qty",
+    "Picked Qty (Unit)": "picked_qty",
+    "Packed Qty (Unit)": "packed_qty",
+    "Shipped Qty (Unit)": "shipped_qty",
+    "Cancelled Qty (Unit)": "cancelled_qty"
+})
+
 df_receipts = df_receipts.merge(
     df_client[['description', 'id']],
     left_on='client',      # receipts column
@@ -314,6 +330,39 @@ df_shipment_order = df_shipment_order.merge(
 df_shipment_order['open_date'] = pd.to_datetime(df_shipment_order['open_date'], errors='coerce', dayfirst=False)
 df_shipment_order['close_date'] = pd.to_datetime(df_shipment_order['close_date'], errors='coerce', dayfirst=False)
 df_shipment_order['actual_shipment_date'] = pd.to_datetime(df_shipment_order['actual_shipment_date'], errors='coerce', dayfirst=False)
+
+cols_keep = [
+    "order_id",
+    "item_id",
+    "ordered_qty",
+    "open_qty",
+    "allocated_qty",
+    "picked_qty",
+    "packed_qty",
+    "shipped_qty",
+    "cancelled_qty"
+]
+
+df_order_details = df_order_details[cols_keep]
+
+df_order_details = df_order_details.merge(
+    df_shipment_order[
+        ["customer_order", "client", "order_status", "logiwa_order",
+         "order_date", "actual_shipment_date"]
+    ],
+    on="customer_order",
+    how="left"
+)
+
+df_order_details = df_order_details.merge(
+    df_item[["id", "sku", "description"]],  # columnas que queremos traer
+    left_on="item_id",   # df_order_details.item_id = SKU
+    right_on="sku",       # df_item.sku
+    how="left"
+)
+
+df_order_details = df_order_details.rename(columns={"id": "item_id_tabla_item"})
+
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
