@@ -290,10 +290,10 @@ cols_to_add = [
     "height"
 ]
 
-report_subset = shipment_report_all[["customer_order"] + cols_to_add]
+shipment_report_all_order = shipment_report_all[["customer_order"] + cols_to_add]
 
 df_shipment_order = df_shipment_order.merge(
-    report_subset,
+    shipment_report_all_order,
     on="customer_order",
     how="left"
 )
