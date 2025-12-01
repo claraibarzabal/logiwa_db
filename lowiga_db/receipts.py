@@ -361,7 +361,7 @@ df_order_details = df_order_details.merge(
     how="left"
 )
 
-df_order_details = df_order_details.rename(columns={"id": "item_id_tabla_item"})
+df_order_details = df_order_details.rename(columns={"id": "item_id"})
 
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
