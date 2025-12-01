@@ -116,22 +116,6 @@ df_receipt_report = df_receipt_report.rename(columns={
     "Entered By": "entered_by"
 })
 
-df_receipt_report_consolidado = (
-    df_receipt_report
-    .groupby(["po_receipt_order", "sku"], as_index=False)
-    .agg({
-        "quantity_unit": "sum",          # sumar unidades
-        "client": "first",
-        "status": "first",
-        "date_received": "first",
-        "pallet_tote_lp": "first",
-        "location": "first",
-        "return": "first",
-        "entered_by": "first"
-    })
-)
-df_receipt_report_consolidado["id"] = df_receipt_report_consolidado.index + 1
-
 df_receipts = df_receipts.merge(
     df_client[['description', 'id']],
     left_on='client',      # receipts column
@@ -206,6 +190,22 @@ df_receipt_report = df_receipt_report.merge(
     right_on='sku',  # item column
     how='left'
 ).rename(columns={'id': 'item_id'})
+
+df_receipt_report_consolidado = (
+    df_receipt_report
+    .groupby(["po_receipt_order", "sku"], as_index=False)
+    .agg({
+        "quantity_unit": "sum",          # sumar unidades
+        "client": "first",
+        "status": "first",
+        "date_received": "first",
+        "pallet_tote_lp": "first",
+        "location": "first",
+        "return": "first",
+        "entered_by": "first"
+    })
+)
+df_receipt_report_consolidado["id"] = df_receipt_report_consolidado.index + 1
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
