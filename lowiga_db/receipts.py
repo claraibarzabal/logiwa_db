@@ -28,7 +28,7 @@ shipment_files = [
     os.path.join(EXCEL_DIR, "ShipmentReportAll2.xlsx")
 ]
 
-shipment_report_all = pd.concat( [pd.read_excel(f) for f in shipment_files], ignore_index=True)
+df_shipment_report_all = pd.concat( [pd.read_excel(f) for f in shipment_files], ignore_index=True)
 
 order_files = [
     os.path.join(EXCEL_DIR, "ShipmentOrderDetailStatusReport1.xlsx"),
@@ -43,6 +43,7 @@ df_item['id'] = df_item.index + 1
 df_receipt_report['id'] = df_receipt_report.index + 1
 df_compare_receipt['id'] = df_compare_receipt.index + 1
 df_shipment_order['id'] = df_shipment_order.index + 1
+df_shipment_report_all['id'] = df_shipment_report_all.index + 1
 df_order_details['id'] = df_order_details.index + 1
 
 df_receipts = df_receipts.rename(columns={
@@ -175,7 +176,7 @@ def to_snake(name):
     name = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', name)  # separa camelCase
     return name.lower()
 
-shipment_report_all.columns = [to_snake(c) for c in shipment_report_all.columns]
+df_shipment_report_all.columns = [to_snake(c) for c in df_shipment_report_all.columns]
 
 rename_cols = {
     "order_date": "order_date",
@@ -190,7 +191,7 @@ rename_cols = {
     "height": "height"
 }
 
-shipment_report_all = shipment_report_all.rename(columns=rename_cols)
+df_shipment_report_all = df_shipment_report_all.rename(columns=rename_cols)
 
 df_order_details = df_order_details.rename(columns={
     "Ordered Qty (Unit)": "ordered_qty",
@@ -306,10 +307,10 @@ cols_to_add = [
     "height"
 ]
 
-shipment_report_all_order = shipment_report_all[["customer_order"] + cols_to_add]
+df_shipment_report_all_order = df_shipment_report_all[["customer_order"] + cols_to_add]
 
 df_shipment_order = df_shipment_order.merge(
-    shipment_report_all_order,
+    df_shipment_report_all_order,
     on="customer_order",
     how="left"
 )
@@ -379,8 +380,8 @@ df_item.to_sql("Item", conn, if_exists="replace", index=False)
 df_compare_receipt.to_sql("CompareReceipt", conn, if_exists="replace", index=False)
 df_receipt_report.to_sql("ReceiptReport", conn, if_exists="replace", index=False)
 df_shipment_order.to_sql("ShipmentOrder", conn, if_exists="replace", index=False)
-shipment_report_all.to_sql("ShipmentReportAll", conn, if_exists="replace", index=False)
-shipment_report_all_order.to_sql("ShipmentReportAllOrder", conn, if_exists="replace", index=False)
+df_shipment_report_all.to_sql("ShipmentReportAll", conn, if_exists="replace", index=False)
+df_shipment_report_all_order.to_sql("ShipmentReportAllOrder", conn, if_exists="replace", index=False)
 df_order_details.to_sql("OrderDetails", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
