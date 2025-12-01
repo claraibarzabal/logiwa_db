@@ -297,6 +297,7 @@ df_shipment_order = df_shipment_order.merge(
     on="customer_order",
     how="left"
 )
+# ---
 
 df_status = df_status.rename(columns={
     "id": "status_id",
