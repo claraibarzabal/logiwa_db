@@ -354,6 +354,8 @@ df_order_details = df_order_details.merge(
     how="left"
 )
 
+df_order_details = df_order_details.rename(columns={"logiwa_order": "order_id"})
+
 df_order_details = df_order_details.merge(
     df_item[["id", "sku", "description"]],  # columnas que queremos traer
     left_on="item_id",   # df_order_details.item_id = SKU
