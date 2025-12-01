@@ -118,10 +118,10 @@ df_receipt_report = df_receipt_report.rename(columns={
     "Date Received": "date_received",
     "PO / Receipt Order #": "po_receipt_order",
     "SKU": "sku",
-    "Pallet/Tote (LP)": "pallet_tote_lp",
+    "Pallet/Tote (LP)": "box",
     "Location": "location",
     "Return": "return",
-    "Quantity (Unit)": "quantity_unit",
+    "Quantity (Unit)": "receipt_qty",
     "Entered By": "entered_by"
 })
 
@@ -265,11 +265,11 @@ df_receipt_report_consolidado = (
     df_receipt_report
     .groupby(["po_receipt_order", "sku"], as_index=False)
     .agg({
-        "quantity_unit": "sum",          # sumar unidades
+        "receipt_qty": "sum",          # sumar unidades
         "client": "first",
         "status": "first",
         "date_received": "first",
-        "pallet_tote_lp": "first",
+        "box": "first",
         "location": "first",
         "return": "first",
         "entered_by": "first"
