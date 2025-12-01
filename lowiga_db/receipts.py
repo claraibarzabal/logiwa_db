@@ -14,14 +14,22 @@ df_users = pd.read_excel(os.path.join(EXCEL_DIR, "User1.xlsx"))
 df_client = pd.read_excel(os.path.join(EXCEL_DIR, "Client1.xlsx"))
 df_item = pd.read_excel(os.path.join(EXCEL_DIR, "Items.xlsx"))
 
-files = [
-    "Excels/ReceiptReport1.xlsx",
-    "Excels/ReceiptReport2.xlsx",
-    "Excels/ReceiptReport3.xlsx"
+receipt_files = [
+    os.path.join(EXCEL_DIR, "ReceiptReport1.xlsx"),
+    os.path.join(EXCEL_DIR, "ReceiptReport2.xlsx"),
+    os.path.join(EXCEL_DIR, "ReceiptReport3.xlsx")
 ]
 
 # Leer y concatenar
-df_receipt_report = pd.concat([pd.read_excel(f) for f in files], ignore_index=True)
+df_receipt_report = pd.concat([pd.read_excel(f) for f in receipt_files], ignore_index=True)
+df_shipment_order = pd.read_excel(os.path.join(EXCEL_DIR, "ShipmentOrder1.xlsx"))
+shipment_files = [
+    os.path.join(EXCEL_DIR, "ShipmentReportAll1.xlsx"),
+    os.path.join(EXCEL_DIR, "ShipmentReportAll2.xlsx")
+]
+
+shipment_report_all = pd.concat( [pd.read_excel(f) for f in shipment_files], ignore_index=True)
+
 
 df_client['id'] = df_client.index + 1
 df_status['id'] = df_status.index + 1
@@ -29,6 +37,7 @@ df_receipts['id'] = df_receipts.index + 1
 df_item['id'] = df_item.index + 1
 df_receipt_report['id'] = df_receipt_report.index + 1
 df_compare_receipt['id'] = df_compare_receipt.index + 1
+df_shipment_order['id'] = df_shipment_order.index + 1
 
 df_receipts = df_receipts.rename(columns={
     "Client": "client",
@@ -115,6 +124,67 @@ df_receipt_report = df_receipt_report.rename(columns={
     "Quantity (Unit)": "quantity_unit",
     "Entered By": "entered_by"
 })
+
+df_shipment_order = df_shipment_order.rename(columns={
+    "Client": "client",
+    "Logiwa Order #": "logiwa_order",
+    "Customer": "customer",
+    "Customer Order #": "customer_order",
+    "Back Order #": "back_order",
+    "Order Status": "order_status",
+    "Operation Status": "operation_status",
+    "Order Type": "order_type",
+    "Nof Products": "nof_products",
+    "Open Date": "open_date",
+    "Channel Order Code": "channel_order_code",
+    "Cancel Date": "close_date",
+    "Actual Shipment Date": "actual_shipment_date",
+    "Carrier Tracking Number": "carrier_tracking_number",
+    "Document": "document",
+    "Instructions": "instructions",
+    "Carrier": "carrier",
+    "Shipment Method": "shipment_method",
+    "Store Name": "store_name",
+    "Actual Delivery Date": "actual_delivery_date",
+    "Notes": "notes",
+    "Entered By": "entered_by",
+    "FBA Status ID": "fba_status_id"
+})
+
+rename_to_orders = {
+    "client": "client_id",
+    "nof_products": "units",
+    "actual_shipment_date": "shipment_date",
+    "carrier_tracking_number": "tracking_number",
+    "shipment_method": "shipping_method"
+}
+
+df_shipment_order = df_shipment_order.rename(columns=rename_to_orders)
+
+import re
+
+def to_snake(name):
+    name = name.strip()
+    name = re.sub(r'[^0-9a-zA-Z]+', '_', name)   # reemplaza espacios y símbolos por _
+    name = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', name)  # separa camelCase
+    return name.lower()
+
+shipment_report_all.columns = [to_snake(c) for c in shipment_report_all.columns]
+
+rename_cols = {
+    "order_date": "order_date",
+    "carrier_rate": "carrier_rate",
+    "total_shipping_rate": "total_rate",
+    "state": "state",
+    "city": "city",
+    "zipcode": "zip_code",
+    "weight": "weight",
+    "width": "width",
+    "length": "length",
+    "height": "height"
+}
+
+shipment_report_all = shipment_report_all.rename(columns=rename_cols)
 
 df_receipts = df_receipts.merge(
     df_client[['description', 'id']],
@@ -207,6 +277,50 @@ df_receipt_report_consolidado = (
 )
 df_receipt_report_consolidado["id"] = df_receipt_report_consolidado.index + 1
 
+cols_to_add = [
+    "order_date",
+    "carrier_rate",
+    "total_rate",
+    "state",
+    "city",
+    "zip_code",
+    "weight",
+    "width",
+    "length",
+    "height"
+]
+
+report_subset = shipment_report_all[["customer_order"] + cols_to_add]
+
+df_shipment_order = df_shipment_order.merge(
+    report_subset,
+    on="customer_order",
+    how="left"
+)
+
+df_status = df_status.rename(columns={
+    "id": "status_id",
+    "description": "order_status"
+})
+
+df_type = df_type.rename(columns={
+    "id": "type_id",
+    "description": "order_type"
+})
+
+df_shipment_order = df_shipment_order.merge(
+    df_status,
+    on="order_status",
+    how="left"
+)
+
+df_shipment_order = df_shipment_order.merge(
+    df_type,
+    on="order_type",
+    how="left"
+)
+
+
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
 
@@ -219,6 +333,8 @@ df_client.to_sql("Client", conn, if_exists="replace", index=False)
 df_item.to_sql("Item", conn, if_exists="replace", index=False)
 df_compare_receipt.to_sql("CompareReceipt", conn, if_exists="replace", index=False)
 df_receipt_report.to_sql("ReceiptReport", conn, if_exists="replace", index=False)
+df_shipment_order.to_sql("ShipmentOrder", conn, if_exists="replace", index=False)
+shipment_report_all.to_sql("ShipmentReportAll", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
 query_status = """
