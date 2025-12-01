@@ -299,28 +299,21 @@ df_shipment_order = df_shipment_order.merge(
 )
 # ---
 
-df_status = df_status.rename(columns={
-    "id": "status_id",
-    "description": "order_status"
-})
-
-df_type = df_type.rename(columns={
-    "id": "type_id",
-    "description": "order_type"
-})
-
 df_shipment_order = df_shipment_order.merge(
     df_status,
-    on="order_status",
+    on="id",
     how="left"
 )
 
 df_shipment_order = df_shipment_order.merge(
     df_type,
-    on="order_type",
+    on="id",
     how="left"
 )
 
+df_shipment_order['open_date'] = pd.to_datetime(df_shipment_order['open_date'], errors='coerce', dayfirst=False)
+df_shipment_order['close_date'] = pd.to_datetime(df_shipment_order['close_date'], errors='coerce', dayfirst=False)
+df_shipment_order['actual_shipment_date'] = pd.to_datetime(df_shipment_order['actual_shipment_date'], errors='coerce', dayfirst=False)
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
