@@ -508,6 +508,7 @@ df_shipment_order.to_sql("ShipmentOrder", conn, if_exists="replace", index=False
 df_shipment_report_all.to_sql("ShipmentReportAll", conn, if_exists="replace", index=False)
 df_shipment_report_all_order.to_sql("ShipmentReportAllOrder", conn, if_exists="replace", index=False)
 df_order_details.to_sql("OrderDetails", conn, if_exists="replace", index=False)
+df_transaction.to_sql("Transaction", conn, if_exists="replace", index=False)
 
 # 4. Ejecutar consulta SQL para status
 query_status = """
