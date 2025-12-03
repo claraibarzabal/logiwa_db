@@ -89,16 +89,13 @@ df_order_details['id'] = df_order_details.index + 1
 df_transaction['id'] = df_transaction.index + 1
 
 df_receipts = df_receipts.rename(columns={
-    "Client": "client",
-    "Receipt Order # (RO)": "receipt_order_ro",
-    "Client Receipt No": "client_receipt_no",
-    "Planned Arrival Date": "planned_arrival_date",
-    "RO Type": "ro_type",
-    "RO Status": "ro_status",
-    "Date Completed": "date_completed",
-    "Entered By": "entered_by",
-    "Notes": "notes",
-    'id_x': 'id'
+    "Client_id": "client_id",
+    "Status_id": "status_id",
+    "Type_id": "type_id",
+    "User_id": "user_id",
+    "Receipt_Order# (RO)": "receipt_order_ro",
+    "Formatted_date": "formatted_date",
+    'id': 'id'
 })
 
 df_compare_receipt = df_compare_receipt.rename(columns={
@@ -268,46 +265,62 @@ rename_transaction = {
 
 df_transaction = df_transaction.rename(columns=rename_transaction)
 
-df_receipts = df_receipts.merge(
-    df_client[['description', 'id']],
-    left_on='client',      # receipts column
-    right_on='description',  # clients column
-    how='left'
-).rename(columns={'id_y': 'client_id'})
+#---------------------------------------------------------------
+print(df_receipts.columns)
+df_receipts_11981 = df_receipts[df_receipts["client_id"] == 11981]
+print(df_receipts_11981)
+#---------------------------------------------------------------
+
+df_receipts["receipt_id"] = df_receipts["id"]
+
+df_receipts['client'] = df_receipts['client_id'].astype('Int64')
+df_client['code'] = df_client['code'].astype('Int64')
 
 df_receipts = df_receipts.merge(
-    df_status[['status_name', 'id']],
-    left_on='ro_status',      # receipts column
-    right_on='status_name',  # status column
+    df_client[['code', 'description']], 
+    left_on='client_id',
+    right_on='code',
     how='left'
-).rename(columns={'id': 'status_id'})
+).rename(columns={'code': 'client_id', 'description': 'client_description'})
 
 df_receipts = df_receipts.merge(
-    df_type[['description', 'id']],
-    left_on='ro_type',      # receipts column
-    right_on='description',  # type column
+    df_status[['id', 'description']],
+    left_on='status_id',      # receipts column
+    right_on='id',  # status column
     how='left'
-).rename(columns={'id': 'type_id'})
+).rename(columns={'id': 'status_id', 'description': 'status_description'})
 
 df_receipts = df_receipts.merge(
-    df_users[['email', 'id']],
-    left_on='entered_by',      # receipts column
-    right_on='email',  # users column
+    df_type[['id', 'description']],
+    left_on='type_id',      # receipts column
+    right_on='id',  # type column
+    how='left'
+).rename(columns={'id': 'type_id', 'description': 'type_description'})
+
+df_receipts = df_receipts.merge(
+    df_users[['id', 'email']],
+    left_on='user_id',      # receipts column
+    right_on='id',  # users column
     how='left'
 ).rename(columns={'id': 'user_id'})
 
-df_receipts['date_completed'] = pd.to_datetime(df_receipts['date_completed'], errors='coerce', dayfirst=False)
-
+df_receipts['formatted_date'] = pd.to_datetime(df_receipts['formatted_date'], errors='coerce', dayfirst=False)
+print(df_receipts.columns)
+# Index(['id_x', 'client_id', 'status_id', 'type_id', 'user_id',
+#       'receipt_order_ro', 'formatted_date', 'receipt_id', 'client',
+#       'client_id', 'client_description', 'id_y', 'status_description',
+#       'type_id', 'type_description', 'user_id', 'email'],
+#      dtype='object')
 df_receipts = df_receipts[
-    ['receipt_order_ro', 'date_completed', 'client_id', 'status_id', 'type_id', 'user_id', 'id_x']
+    ['receipt_order_ro', 'formatted_date', 'client_id', 'status_id', 'type_id', 'user_id', 'receipt_id']
 ]
 
 df_compare_receipt = df_compare_receipt.merge(
-    df_receipts[['receipt_order', 'id']],
+    df_receipts[['receipt_order_ro', 'receipt_id']],
     left_on='receipt_order',      # compare receipts column
-    right_on='receipt_order',  # receipt column
+    right_on='receipt_order_ro',  # receipt column
     how='left'
-).rename(columns={'id': 'receipt_id'})
+)
 
 df_compare_receipt = df_compare_receipt.dropna(subset=['receipt_id'])
 df_compare_receipt['receipt_id'] = df_compare_receipt['receipt_id'].astype('Int64')
@@ -330,11 +343,11 @@ df_compare_receipt = df_compare_receipt[
 ]
 
 df_receipt_report = df_receipt_report.merge(
-    df_receipts[['receipt_order', 'id']],
+    df_receipts[['receipt_order_ro', 'receipt_id']],
     left_on='po_receipt_order',      # compare receipts column
-    right_on='receipt_order',  # receipt column
+    right_on='receipt_order_ro',  # receipt column
     how='left'
-).rename(columns={'id': 'receipt_id'})
+)
 
 df_receipt_report = df_receipt_report.merge(
     df_item[['sku', 'id']],
