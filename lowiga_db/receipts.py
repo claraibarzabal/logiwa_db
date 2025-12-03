@@ -72,7 +72,7 @@ transaction_files = [
     os.path.join(EXCEL_DIR, "Transaction33.xlsx"),
     os.path.join(EXCEL_DIR, "Transaction34.xlsx"),
     os.path.join(EXCEL_DIR, "Transaction35.xlsx"),
-    os.path.join(EXCEL_DIR, "Transaction36.xlsx"),
+    os.path.join(EXCEL_DIR, "Transaction36.xlsx")
 ]
 
 df_transaction = pd.concat( [pd.read_excel(f) for f in transaction_files], ignore_index=True)
