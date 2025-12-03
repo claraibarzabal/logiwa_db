@@ -36,6 +36,15 @@ order_files = [
 ]
 df_order_details = pd.concat( [pd.read_excel(f) for f in order_files], ignore_index=True)
 
+transaction_files = [
+    os.path.join(EXCEL_DIR, "Transaction1.xlsx"),
+    os.path.join(EXCEL_DIR, "Transaction2.xlsx"),
+    os.path.join(EXCEL_DIR, "Transaction3.xlsx"),
+    os.path.join(EXCEL_DIR, "Transaction4.xlsx"),
+    os.path.join(EXCEL_DIR, "Transaction5.xlsx")
+]
+df_transaction = pd.concat( [pd.read_excel(f) for f in transaction_files], ignore_index=True)
+
 df_client['id'] = df_client.index + 1
 df_status['id'] = df_status.index + 1
 df_receipts['id'] = df_receipts.index + 1
@@ -45,6 +54,7 @@ df_compare_receipt['id'] = df_compare_receipt.index + 1
 df_shipment_order['id'] = df_shipment_order.index + 1
 df_shipment_report_all['id'] = df_shipment_report_all.index + 1
 df_order_details['id'] = df_order_details.index + 1
+df_transaction['id'] = df_transaction.index + 1
 
 df_receipts = df_receipts.rename(columns={
     "Client": "client",
@@ -203,6 +213,29 @@ df_order_details = df_order_details.rename(columns={
     "Cancelled Qty (Unit)": "cancelled_qty"
 })
 
+rename_transaction = {
+    "TransactionDate": "transaction_date",
+    "Quantity (Unit)": "quantity",
+    "Tote/Pallet #": "box",
+    "Location": "location",
+    "Quarantine Reason": "quarantine_reason",
+    "Client": "client",
+    "History Id": "history_id",
+    "Item Description": "item_description",
+    "SKU": "sku",
+    "Transaction Type": "transaction_type",
+    "Sub Type": "sub_type",
+    "Receipt Order": "receipt_order",
+    "Logiwa Order #": "logiwa_order",
+    "User": "user",
+    "Customer": "customer",
+    "Barcode": "barcode",
+    "Warehouse": "warehouse",
+    "Suitability Reason": "suitability_reason",
+}
+
+df_transaction = df_transaction.rename(columns=rename_transaction)
+
 df_receipts = df_receipts.merge(
     df_client[['description', 'id']],
     left_on='client',      # receipts column
@@ -355,7 +388,7 @@ df_order_details = df_order_details.merge(
     how="left"
 )
 
-df_order_details = df_order_details.rename(columns={"logiwa_order": "order_id"})
+# df_order_details = df_order_details.rename(columns={"logiwa_order": "order_id"})
 
 df_order_details = df_order_details.merge(
     df_item[["id", "sku", "description"]],  # columnas que queremos traer
@@ -366,6 +399,66 @@ df_order_details = df_order_details.merge(
 
 df_order_details = df_order_details.rename(columns={"id": "item_id"})
 
+cols_keep_transaction = [
+    "transaction_date",
+    "quantity",
+    "box",
+    "location",
+    "quarantine_reason",
+    "item_description",
+    "transaction_type",
+    "logiwa_order",
+    "receipt_order",
+    "user"
+]
+
+df_transaction = df_transaction[cols_keep_transaction]
+
+
+df_transaction = df_transaction.merge(
+    df_item[["id", "description"]],      
+    left_on="item_description",
+    right_on="description",
+    how="left"
+)
+df_transaction = df_transaction.drop(columns=["description"])
+df_transaction = df_transaction.rename(columns={"id": "item_id"})
+
+
+df_transaction = df_transaction.merge(
+    df_type[["id", "description"]],     
+    left_on="transaction_type",
+    right_on="description",
+    how="left"
+)
+df_transaction = df_transaction.drop(columns=["description"])
+df_transaction = df_transaction.rename(columns={"id": "type_id"})
+
+df_transaction = df_transaction.merge(
+    df_order_details[["order_id", "logiwa_order"]],   
+    on="logiwa_order",
+    how="left"
+)
+
+df_transaction = df_transaction.merge(
+    df_receipts[["id", "receipt_order_ro"]],   
+    left_on="receipt_order",
+    right_on="receipt_order_ro",
+    how="left"
+)
+
+df_transaction = df_transaction.drop(columns=["receipt_order_ro"])
+df_transaction = df_transaction.rename(columns={"id": "receipt_order_id"})
+
+df_transaction = df_transaction.merge(
+    df_users[["id", "username"]],
+    left_on="user",
+    right_on="username",
+    how="left"
+)
+
+df_transaction = df_transaction.rename(columns={"id": "user_id"})
+df_transaction = df_transaction.drop(columns=["username"])
 
 # 2. Conectar a SQLite (crea un archivo .db si no existe)
 conn = sqlite3.connect("mydb.db")
