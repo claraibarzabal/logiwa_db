@@ -270,6 +270,9 @@ print(df_receipts.columns)
 df_receipts_11981 = df_receipts[df_receipts["client_id"] == 11981]
 print(df_receipts_11981)
 #---------------------------------------------------------------
+df_order_details_3 = df_order_details[df_order_details['ordered_qty'] == 3]
+print(df_order_details_3)
+#---------------------------------------------------------------
 
 df_receipts["receipt_id"] = df_receipts["id"]
 
@@ -326,12 +329,17 @@ df_compare_receipt = df_compare_receipt.dropna(subset=['receipt_id'])
 df_compare_receipt['receipt_id'] = df_compare_receipt['receipt_id'].astype('Int64')
 
 df_compare_receipt = df_compare_receipt.merge(
-    df_item[['sku', 'id']],
-    left_on='item_code',      # compare receipts column
-    right_on='sku',  # item column
+    df_item[['sku', 'barcode','id']],
+    left_on='barcode',      # compare receipts column
+    right_on='barcode',  # item column
     how='left'
 ).rename(columns={'id': 'item_id'})
 
+#---------------------------------------------------------------
+print(df_compare_receipt.columns.tolist())
+print(df_compare_receipt.head())
+print(df_item.columns.tolist())
+#---------------------------------------------------------------
 df_compare_receipt = df_compare_receipt.dropna(subset=['item_id'])
 df_compare_receipt['item_id'] = df_compare_receipt['item_id'].astype('Int64')
 
