@@ -82,7 +82,7 @@ df_status['id'] = df_status.index + 1
 df_receipts['id'] = df_receipts.index + 1
 df_item['id'] = df_item.index + 1
 df_receipt_report['id'] = df_receipt_report.index + 1
-df_compare_receipt['id'] = df_compare_receipt.index + 1
+# df_compare_receipt['id'] = df_compare_receipt.index + 1
 df_shipment_order['id'] = df_shipment_order.index + 1
 df_shipment_report_all['id'] = df_shipment_report_all.index + 1
 df_order_details['id'] = df_order_details.index + 1
@@ -329,11 +329,17 @@ df_compare_receipt = df_compare_receipt.dropna(subset=['receipt_id'])
 df_compare_receipt['receipt_id'] = df_compare_receipt['receipt_id'].astype('Int64')
 
 df_compare_receipt = df_compare_receipt.merge(
-    df_item[['sku', 'barcode','id']],
-    left_on='barcode',      # compare receipts column
-    right_on='barcode',  # item column
+    df_item[['id', 'sku', 'barcode']],
+    on='barcode',
     how='left'
 ).rename(columns={'id': 'item_id'})
+
+#df_compare_receipt = df_compare_receipt.merge(
+#    df_item[['sku', 'barcode','id']],
+#    left_on='barcode',      # compare receipts column
+#    right_on='barcode',  # item column
+#    how='left'
+#).rename(columns={'id': 'item_id'})
 
 #---------------------------------------------------------------
 print(df_compare_receipt.columns.tolist())
