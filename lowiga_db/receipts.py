@@ -266,6 +266,9 @@ rename_transaction = {
 df_transaction = df_transaction.rename(columns=rename_transaction)
 
 #---------------------------------------------------------------
+df_transaction_filtered = df_transaction[df_transaction["sku"] == "BT24571-2-WHTRDSTR-L"]
+print(df_transaction_filtered)
+#---------------------------------------------------------------
 print(df_receipts.columns)
 df_receipts_11981 = df_receipts[df_receipts["client_id"] == 11981]
 print(df_receipts_11981)
